@@ -12,33 +12,63 @@ app.background = {
     this.delay = this.el.data("delay");
     this.baseHeight = this.el.data("height");
     this.baseWidth = this.el.data("width");
+    this.slides = this.el.data("slides");
     this.image = this.el.data("image");
+    this.isMobile = (/iPhone|iPod|iPad|Android|BlackBerry/).test(navigator.userAgent);
 
     // event handlers
     $(window).resize(function(){
-      app.background.newDimensions();
-    })
+      app.background.dimensions();
+    });
 
-    // set up
+    // attach default image
     this.el.css("background-image", "url(" + this.image + ")");
-    this.newDimensions();
-    this.sequence();
+
+    // don't attempt to animate if on a mobile device
+    // iOS won't even display the image due to the large dimensions
+    if (this.isMobile) {
+      this.dimensions();
+    } else {
+      this.el.css("background-image", "url(" + this.slides + ")");
+      this.dimensions();
+      this.sequence();
+    }
+
   },
 
-  newDimensions: function(){
+
+
+  dimensions: function(){
+
+    // determine the size of the window
     var windowWidth = $(window).width();
     var windowHeight = $(window).height();
+
+    // determine which dimension has to scale the most to fill the window
     var widthRatio = windowWidth / this.baseWidth;
     var heightRatio = windowHeight / this.baseHeight;
     this.currentRatio = heightRatio > widthRatio ? heightRatio : widthRatio;
+
+    // save new dimensions based on the size needed to fill the window
     this.currentWidth = Math.ceil(this.baseWidth * this.currentRatio);
     this.currentHeight = Math.ceil(this.baseHeight * this.currentRatio);
     this.currentTotalWidth = this.currentWidth * this.count;
     var currentHeightInPixels = this.currentHeight + "px";
+    var currentWidthInPixels = this.currentWidth + "px";
     var currentTotalWidthInPixels = this.currentTotalWidth + "px";
-    var currentDimensions = currentTotalWidthInPixels + " " + currentHeightInPixels;
+
+    // dimensions differ dependent on if we are sequencing
+    if (this.isMobile) {
+      var currentDimensions = currentWidthInPixels + " " + currentHeightInPixels;
+    } else {
+      var currentDimensions = currentTotalWidthInPixels + " " + currentHeightInPixels;
+    }
+
+    // set the background-size based on the necessary dimensions
     this.el.css('background-size', currentDimensions);
 
+    // since one dimension may exceed the window, center the image using
+    // the offset (if one exists)
     this.currentOffsetX = 0
     this.currentOffsetY = 0
 
@@ -52,7 +82,8 @@ app.background = {
       this.el.css('background-position-y', this.currentOffsetY + "px")
     }
 
-    if (true) {
+    // turn this on if you want logs in development
+    if (false) {
       console.log("windowWidth: " + windowWidth)
       console.log("windowHeight: " + windowHeight)
       console.log("widthRatio: " + widthRatio)
@@ -63,6 +94,7 @@ app.background = {
       console.log("currentTotalWidth: " + this.currentTotalWidth)
       console.log("currentDimensions: " + currentDimensions)
     }
+
   },
 
   sequence: function(){
