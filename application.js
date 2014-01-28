@@ -36,8 +36,6 @@ app.background = {
 
   },
 
-
-
   dimensions: function(){
 
     // determine the size of the window
